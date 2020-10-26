@@ -50,6 +50,7 @@ python manage createsuperuser
 - `/poll/?user_identificator=<user_identificator>/` - Все опросы, пройденные пользователем, identifier которого равен <user_identificator>
 - `/poll/<poll_pk>/` - Конкретный опрос, <poll_pk> - id опроса
 - `/poll/<poll_pk>/answers/?user_identificator=<user_identificator>/` - Ответы на опрос с id <poll_pk> пользователя с идентификатором <user_identificator>
+- `/poll/verbose/?user_identifier=<user_identifier>/` - Опросы c ответами, которые прошел пользователь с идентификатором <user_identifier> 
 ### POST запросы
 - `/poll/` - необходимо указать: `start_date`, `end_date`, `desc` (опционально)
 
