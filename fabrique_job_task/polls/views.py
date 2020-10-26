@@ -103,9 +103,13 @@ class AnswerViewSet(viewsets.ModelViewSet):
 
         query_params = self.request.query_params
         question_pk = query_params.get('question_pk')
+        user_identifier = query_params.get('user_identifier')
 
         if question_pk:
             queryset = queryset.filter(question=question_pk)
+
+        if user_identifier:
+            queryset = queryset.filter(user_identifier=user_identifier)
 
         return queryset
 
