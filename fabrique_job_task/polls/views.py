@@ -10,32 +10,56 @@ from .serializers import (
     PollDefaultSerializer, PollCreateSerializer,
     QuestionSerializer,
     AnswerSerializer,
+    QuestionAnswerSerializer,
+    UserPollsSerializer,
 )
 
 
 class PollViewSet(viewsets.ModelViewSet):
     queryset = Poll.objects.all()
 
-    def get_queryset(self):
-        queryset = self.queryset
+    # MARK: - Actions
 
+    @action(methods=['get'], url_path="verbose",
+            url_name='get-user-polls-verbose', detail=False)
+    def get_user_polls_verbose(self, request):
         query_params = self.request.query_params
         user_identifier = query_params.get('user_identifier')
 
-        if user_identifier:
-            user_answers = Answer.objects.filter(user_identifier=user_identifier)
-            try:
-                questions = [
-                    Question.objects.get(pk=answer.question.pk) for answer in user_answers
-                ]
-            except Question.DoesNotExist:
-                return queryset
+        if not user_identifier:
+            return Response(status=400)
 
-            poll_pks = set([question.poll.pk for question in questions])
+        answers = Answer.objects.filter(user_identifier=user_identifier)
+        questions = [answer.question for answer in answers]
+        polls = [self.queryset.get(pk=question.poll.pk) for question in questions]
 
-            queryset = queryset.filter(pk__in=poll_pks)
+        poll_serializers = []
+        for poll in polls:
+            poll_questions = [
+                question for question in questions
+                if question.pk == poll.pk
+            ]
 
-        return queryset
+            question_answer_mapping = []
+            for question in poll_questions:
+                answer = answers.get(question=question.pk)
+                question_answer_data = {
+                    'question': QuestionSerializer(question).data,
+                    'answer': AnswerSerializer(answer).data,
+                }
+                question_answer = QuestionAnswerSerializer(question_answer_data)
+                question_answer_mapping.append(question_answer.data)
+
+            poll_data = {
+                'start_date': poll.start_date,
+                'end_date': poll.end_date,
+                'desc': poll.desc,
+                'question_answers': question_answer_mapping,
+            }
+            poll_serializer = UserPollsSerializer(poll_data)
+            poll_serializers.append(poll_serializer)
+
+        return Response([s.data for s in poll_serializers])
 
     @action(methods=['get'], url_path="(?P<poll_pk>[^/.]+)/answers",
             url_name='get-user-answers', detail=False)
@@ -58,6 +82,29 @@ class PollViewSet(viewsets.ModelViewSet):
             return Response([s.data for s in serializers])
 
         return Response(status=HTTP_200_OK)
+
+    # MARK: - Overrides
+
+    def get_queryset(self):
+        queryset = self.queryset
+
+        query_params = self.request.query_params
+        user_identifier = query_params.get('user_identifier')
+
+        if user_identifier:
+            user_answers = Answer.objects.filter(user_identifier=user_identifier)
+            try:
+                questions = [
+                    Question.objects.get(pk=answer.question.pk) for answer in user_answers
+                ]
+            except Question.DoesNotExist:
+                return queryset
+
+            poll_pks = set([question.poll.pk for question in questions])
+
+            queryset = queryset.filter(pk__in=poll_pks)
+
+        return queryset
 
     def get_serializer_class(self):
         if self.action == 'create':

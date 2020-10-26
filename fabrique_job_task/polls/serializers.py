@@ -5,6 +5,7 @@ from rest_framework import serializers
 from .models import Poll, Question, Answer
 from .serializer_validators import user_existence_validator
 
+# MARK: - Poll serializers
 
 class PollCreateSerializer(serializers.ModelSerializer):
     desc = serializers.CharField(allow_blank=True, required=False)
@@ -32,13 +33,16 @@ class PollDefaultSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ('start_date', )
 
+# MARK: - Question serializers
 
 class QuestionSerializer(serializers.ModelSerializer):
+    user_identifier = serializers.IntegerField(required=False)
 
     class Meta:
         model = Question
         fields = '__all__'
 
+# MARK: - Answer serializers
 
 class AnswerSerializer(serializers.ModelSerializer):
     user_identifier = serializers.IntegerField(
@@ -48,4 +52,34 @@ class AnswerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Answer
+        fields = '__all__'
+
+# MARK: - User polls serializers
+
+class QuestionDummySerializer(serializers.ModelSerializer):
+    poll = serializers.IntegerField()
+
+    class Meta:
+        model = Question
+        fields = '__all__'
+
+
+class AnswerDummySerializer(serializers.ModelSerializer):
+    question = serializers.IntegerField()
+
+    class Meta:
+        model = Answer
+        fields = '__all__'
+
+
+class QuestionAnswerSerializer(serializers.Serializer):
+    question = QuestionDummySerializer(read_only=True)
+    answer = AnswerDummySerializer(read_only=True)
+
+
+class UserPollsSerializer(serializers.ModelSerializer):
+    question_answers = QuestionAnswerSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Poll
         fields = '__all__'
