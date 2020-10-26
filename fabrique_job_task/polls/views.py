@@ -1,5 +1,3 @@
-from django.shortcuts import render
-
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -86,7 +84,7 @@ class QuestionViewSet(viewsets.ModelViewSet):
         queryset = self.queryset
 
         query_params = self.request.query_params
-        poll_pk = query_params.get('poll_pk')
+        poll_pk = query_params.get('poll')
 
         if poll_pk:
             queryset = queryset.filter(poll=poll_pk)
@@ -102,7 +100,7 @@ class AnswerViewSet(viewsets.ModelViewSet):
         queryset = self.queryset
 
         query_params = self.request.query_params
-        question_pk = query_params.get('question_pk')
+        question_pk = query_params.get('question')
         user_identifier = query_params.get('user_identifier')
 
         if question_pk:
