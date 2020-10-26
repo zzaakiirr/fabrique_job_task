@@ -38,7 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'rest_framework',
+
     'users',
+    'polls',
 ]
 
 MIDDLEWARE = [
@@ -120,3 +123,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Question model settings
+
+TEXT = 0
+SINGLE_CHOICE = 1
+MULTIPLE_CHOICE = 2
+
+QUESTION_KIND = (
+    (TEXT, 'text'),
+    (SINGLE_CHOICE, 'single_choice'),
+    (MULTIPLE_CHOICE, 'multiple_choice'),
+)
